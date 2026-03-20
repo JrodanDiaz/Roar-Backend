@@ -25,7 +25,7 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
       ContentType: fileType as string,
     });
 
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 60 }); // 60 seconds
+    const url = await getSignedUrl(s3Client, command, { expiresIn: 120 }); // 60 seconds
 
     res.json({
       uploadUrl: url,
