@@ -1,10 +1,11 @@
 // Import dependencies
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ override: true });
 
 import express from "express";
 import type { Request, Response } from "express";
 import videoRoutes from "./routes/videoRoutes";
+import { setupDB } from "./config/setupDB";
 
 // Initialize app
 const app = express();
@@ -32,6 +33,12 @@ console.log(`BUCKET NAME: ${process.env.S3_BUCKET_NAME}`);
 console.log(`AWS REGION: ${process.env.AWS_REGION}`);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}!`);
-});
+const startServer = async () => {
+  await setupDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}!!!`);
+  });
+};
+
+startServer();
