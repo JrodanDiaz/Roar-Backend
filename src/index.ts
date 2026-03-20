@@ -34,10 +34,10 @@ console.log(`AWS REGION: ${process.env.AWS_REGION}`);
 
 // Start server
 const startServer = async () => {
-  await setupDB();
+  // await setupDB();
 
   app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}!!!`);
+    console.log(`Server is running on http://localhost:${PORT}!`);
   });
 };
 

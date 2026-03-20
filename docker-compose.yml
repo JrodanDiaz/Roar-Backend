@@ -12,9 +12,12 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   app:
-    build: ./src
+    build: .
     container_name: roar_node_app
     restart: always
+    volumes:
+      - .:/app
+      - /app/node_modules
     env_file: .env
     ports:
       - "${PORT}:3000"

@@ -1,4 +1,5 @@
 .env
-/src/dist
-/src/node_modules
+dist
+/src/dist/
+node_modules
 /src/.env
