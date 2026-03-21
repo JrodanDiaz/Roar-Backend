@@ -3,7 +3,7 @@ import { pool } from "../config/setupDB";
 import { DB_VIDEO } from "../models/DatabaseTypes";
 export const dbLikeVideo = async (videoId: number, userId: number) => {
   const result = await pool.query(
-    "INSERT INTO likes (user_id, video_id) VALUES $1, $2",
+    "INSERT INTO likes (user_id, video_id) VALUES ($1, $2) RETURNING *;",
     [userId, videoId],
   );
   return result.rows[0];

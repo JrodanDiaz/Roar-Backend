@@ -1,0 +1,43 @@
+import { Request, Response } from "express";
+import { dbLikeVideo, dbUnlikeVideo } from "../utils/dbUtils";
+export const likeVideo = async (req: Request, res: Response) => {
+  try {
+    const { user_id } = req.body;
+    const videoId = req.params.videoId;
+
+    if (!user_id || !videoId) {
+      res.status(400).json({ error: "user_id and videoId required" });
+      return;
+    }
+
+    const likeResult = await dbLikeVideo(Number(videoId), user_id);
+    res.json({ like: likeResult });
+  } catch (err) {
+    console.log("Error while liking video: ", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const unlikeVideo = async (req: Request, res: Response) => {
+  try {
+    const videoId = req.params.videoId;
+    const { user_id } = req.body;
+
+    if (!videoId || !user_id) {
+      res.status(400).json({ error: "videoId and user_id required" });
+      return;
+    }
+
+    const deleted = await dbUnlikeVideo(Number(videoId), user_id);
+    if (deleted === 0) {
+      res
+        .status(500)
+        .json({ error: "Error deleting video, no videos deleted" });
+      return;
+    }
+    res.status(200).json({ message: "Video successfully unliked" });
+  } catch (err) {
+    console.log("Error while unliking video: ", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
