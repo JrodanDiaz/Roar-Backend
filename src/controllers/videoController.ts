@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { pool } from "../config/db";
-import { dbCreateVideo, dbGetFeedVideos } from "../utils/dbUtils";
+import {
+    dbCreateVideo,
+    dbGetFeedVideos,
+    dbGetVideoById,
+} from "../utils/dbUtils";
 import {
     getPresignedDownloadUrl,
     getPresignedUploadUrlHelper,
@@ -94,6 +98,32 @@ export const getFeedHandler = async (req: AuthRequest, res: Response) => {
         res.status(200).json({ videos: videos });
     } catch (err) {
         console.log("Error fetching feed: ", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export const getVideoHandler = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+        const user_id = Number(req.user.id);
+        if (!user_id)
+            return res.status(400).json({ error: "User ID Required" });
+
+        const video_id = req.params.videoId;
+        if (!video_id)
+            return res
+                .status(400)
+                .json({ error: "Invalid URL: Missing Video ID" });
+
+        const video = await dbGetVideoById(Number(video_id));
+        if (!video)
+            return res.status(404).json({ error: "Video Doesn't Exist" });
+
+        const downloadUrl = await getPresignedDownloadUrl(video.key);
+        res.status(200).json({ video: { url: downloadUrl, ...video } });
+    } catch (err) {
+        console.log(err);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

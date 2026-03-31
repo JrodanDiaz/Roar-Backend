@@ -6,6 +6,7 @@ import {
     DB_FOLLOW,
     DB_FOLLOWER,
     DB_USER,
+    DB_VIDEO,
 } from "../models/DatabaseTypes";
 
 export const dbCreateUser = async (userData: {
@@ -174,6 +175,14 @@ export const dbGetFeedVideos = async (feedData: {
     );
 
     return result.rows;
+};
+
+export const dbGetVideoById = async (id: number) => {
+    const result: QueryResult<DB_VIDEO> = await pool.query(
+        "SELECT * FROM videos WHERE id = $1",
+        [id],
+    );
+    return result.rowCount ? result.rows[0] : null;
 };
 
 export const dbGetCommentsWithReplyCount = async (videoId: number) => {

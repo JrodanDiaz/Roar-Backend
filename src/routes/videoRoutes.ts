@@ -1,8 +1,9 @@
 import { Router } from "express";
 import {
-  getFeedHandler,
-  getVideoUploadUrlHandler,
-  postVideoHandler,
+    getFeedHandler,
+    getVideoHandler,
+    getVideoUploadUrlHandler,
+    postVideoHandler,
 } from "../controllers/videoController";
 
 const router = Router();
@@ -10,6 +11,6 @@ const router = Router();
 router.get("/presigned-url", getVideoUploadUrlHandler);
 router.post("/", postVideoHandler);
 router.get("/", getFeedHandler);
-// router.get("/:id", getVideoById)
+router.get("/:videoId", getVideoHandler);
 
 export default router;

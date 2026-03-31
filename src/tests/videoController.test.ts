@@ -8,8 +8,13 @@ import {
     getVideoUploadUrlHandler,
     postVideoHandler,
     getFeedHandler,
+    getVideoHandler,
 } from "../controllers/videoController";
-import { dbCreateVideo, dbGetFeedVideos } from "../utils/dbUtils";
+import {
+    dbCreateVideo,
+    dbGetFeedVideos,
+    dbGetVideoById,
+} from "../utils/dbUtils";
 
 describe("videoController", () => {
     const mockRes = () => {
@@ -285,6 +290,114 @@ describe("videoController", () => {
             const res = mockRes();
 
             await getFeedHandler(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Internal Server Error",
+            });
+        });
+    });
+
+    //=====================================================
+    //getVideoHandler Tests
+    //=====================================================
+    describe("getVideoHandler", () => {
+        it("should return 401 if user is not authenticated", async () => {
+            const req: any = { user: null };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
+        });
+
+        it("should return 400 if user_id is invalid", async () => {
+            const req: any = { user: { id: "" } };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                error: "User ID Required",
+            });
+        });
+
+        it("should return 400 if videoId is missing", async () => {
+            const req: any = { user: { id: "1" }, params: {} };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Invalid URL: Missing Video ID",
+            });
+        });
+
+        it("should return 404 if video does not exist", async () => {
+            (dbGetVideoById as jest.Mock).mockResolvedValue(null);
+
+            const req: any = {
+                user: { id: "1" },
+                params: { videoId: "10" },
+            };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
+
+            expect(dbGetVideoById).toHaveBeenCalledWith(10);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Video Doesn't Exist",
+            });
+        });
+
+        it("should return video with download URL", async () => {
+            const fakeVideo = {
+                id: 10,
+                key: "video.mp4",
+                title: "Test Video",
+            };
+
+            (dbGetVideoById as jest.Mock).mockResolvedValue(fakeVideo);
+            (getPresignedDownloadUrl as jest.Mock).mockResolvedValue(
+                "https://fake-url.com/video.mp4",
+            );
+
+            const req: any = {
+                user: { id: "1" },
+                params: { videoId: "10" },
+            };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
+
+            expect(dbGetVideoById).toHaveBeenCalledWith(10);
+            expect(getPresignedDownloadUrl).toHaveBeenCalledWith("video.mp4");
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                video: {
+                    url: "https://fake-url.com/video.mp4",
+                    ...fakeVideo,
+                },
+            });
+        });
+
+        it("should return 500 if an error occurs", async () => {
+            (dbGetVideoById as jest.Mock).mockRejectedValue(
+                new Error("DB error"),
+            );
+
+            const req: any = {
+                user: { id: "1" },
+                params: { videoId: "10" },
+            };
+            const res = mockRes();
+
+            await getVideoHandler(req, res);
 
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({
